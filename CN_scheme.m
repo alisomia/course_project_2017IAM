@@ -12,7 +12,7 @@ function [u, output] = CN_scheme(u0,opts)
     % draw figure every ${opts.print_interval} iterations. (0 => off)
     if ~isfield(opts,'print_interval');    opts.print_interval = 0;    end
     % linear equation solver
-    if ~isfield(opts,'subprob_solver');    opts.subprob_solver = 'pcg';end
+    if ~isfield(opts,'subprob_solver');    opts.subprob_solver = 'PCG';end
 
     %get mesh size
     mesh_size = size(u0)-1;
