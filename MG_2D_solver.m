@@ -1,20 +1,18 @@
-function [x,res] = MG_2D_solver(A, b, mat_size, opts)
+function [x,res] = MG_2D_solver(A, b, mat_size, opts,coarse_A,res_op,int_op)
 
 if ~isfield(opts,'res_tol');     opts.res_tol = 1e-6;              end
 if ~isfield(opts,'max_it');      opts.max_it  = 500;               end
 if ~isfield(opts,'x0');          opts.x0      = zeros(size(b));    end
-if ~isfield(opts,'Matlab_tri_solver'); opts.Matlab_tri_solver = 1; end
 if ~isfield(opts,'threshold');   opts.threshold = 8;               end
+if ~isfield(opts,'Matlab_tri_solver'); opts.Matlab_tri_solver = 1; end
 
 x = opts.x0;
 
-% build coarse A
-if ~isfield(opts,'prebuilt_coarse_A')
-    coarse_A = build_coarse_A(A,mat_size);
-else
-    coarse_A = opts.prebuilt_coarse_A;
-    rmfield(opts,'prebuilt_coarse_A');
+% build coarse A & operators
+if nargin < 5
+    [coarse_A,res_op,int_op] = build_coarse(A,mat_size);
 end
+
 res0_norm = norm(A*opts.x0-b);
 for iter = 1 : opts.max_it
     [x,res] = v_solver(1,b,x,mat_size,opts);
@@ -30,22 +28,25 @@ end
         
         if min(cur_mat_size) < opts.threshold
             opts.x0 = u0;
-            opts.max_it = 5;
+            opts.max_it = 3;
             [u,res] = GS_solver(coarse_A{level},target,opts);
         else
             opts.x0 = u0;
             opts.max_it = 1;
             [u,res] = GS_solver(coarse_A{level},target,opts);
-
-            coarse_res = restrict_operator(reshape(res,cur_mat_size));
-            coarse_res = reshape(coarse_res,next_vec_size);
+            
+            coarse_res = res_op{level}*res;
+%             coarse_res = restrict_operator(reshape(res,cur_mat_size));
+%             coarse_res = reshape(coarse_res,next_vec_size);
             [e,~] = v_solver(level+1,coarse_res,zeros(size(coarse_res)),next_mat_size,opts);
-            e = reshape(e,next_mat_size);
-            u = reshape(u,cur_mat_size) + interpolate_operator(e);
-            u = reshape(u,cur_vec_size);
+            u = u + int_op{level}*e;
+%             e = reshape(e,next_mat_size);
+%             u = reshape(u,cur_mat_size) + interpolate_operator(e);
+%             u = reshape(u,cur_vec_size);
             opts.max_it = 2;
             opts.x0 = u;
             [u,res] = GS_solver(coarse_A{level},target,opts);
+            
         end
     end
 end
@@ -67,29 +68,4 @@ kernel = [1/4, 1/2, 1/4;...
 u_h = zeros(2*m+1, 2*n+1);
 u_h(2:2:2*m,2:2:2*n) = u_2h;
 u_h = conv2(u_h,kernel,'same');
-end
-
-function I_12 = generate_I_12(m,n)
-kernel = [1/4, 1/2, 1/4;...
-          1/2,   1, 1/2;...
-          1/4, 1/2, 1/4]/4;
-a = ones(m,1);
-b = a;
-b(1:2:m) =0;
-c = a;
-c(2:2:m) = 0;
-I1 = kron(spdiags(c, -1, m, m), kernel(1, 1))...
-     + kron(spdiags(c, 1, m, m), kernel(1, 3))...
-     + kron(spdiags(b, 0, m, m), kernel(1, 2));
-I2 = kron(spdiags(c, -1, m, m), kernel(2, 1))...
-     + kron(spdiags(c, 1, m, m), kernel(2, 3))...
-     + kron(spdiags(b, 0, m, m), kernel(2, 2));
-I3 = kron(spdiags(c, -1, m, m), kernel(3, 1))...
-     + kron(spdiags(c, 1, m, m), kernel(3, 3))...
-     + kron(spdiags(b, 0, m, m), kernel(3, 2));
-I_12 = sparse(kron(spdiags(c, 1, n, n), I1)...
-    + kron(spdiags(c, -1, n, n), I3)...
-    + kron(spdiags(b, 0, n, n), I2));
-index = logical(kron(b,b));
-I_12 = I_12(index, :);
 end

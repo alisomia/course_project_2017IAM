@@ -16,22 +16,16 @@ if n < opts.threshold
     b = naive_tril_solver(A,b);
 else
     if opts.recursive > 0
-        for i = 1 : chunk_size :n
-            if i + chunk_size - 1 >= n
-                b(i:n,:) = tril_solver(A(i:n,i:n),b(i:n,:),opts);
-            else
-                b(i:i+chunk_size-1,:) = tril_solver(A(i:i+chunk_size-1,i:i+chunk_size-1),b(i:i+chunk_size-1,:),opts);
-                b(i+chunk_size:n,:) = b(i+chunk_size:n,:) - A(i+chunk_size:n,i:i+chunk_size-1)*b(i:i+chunk_size-1,:);
-            end
-        end
+        solver_handle = @(A_,b_,opts_)(tril_solver(A_,b_,opts_));
     else
-        for i = 1 : chunk_size :n
-            if i + chunk_size - 1 >= n
-                b(i:n,:) = naive_tril_solver(A(i:n,i:n),b(i:n,:));
-            else
-                b(i:i+chunk_size-1,:) = naive_tril_solver(A(i:i+chunk_size-1,i:i+chunk_size-1),b(i:i+chunk_size-1,:));
-                b(i+chunk_size:n,:) = b(i+chunk_size:n,:) - A(i+chunk_size:n,i:i+chunk_size-1)*b(i:i+chunk_size-1,:);
-            end
+        solver_handle = @(A_,b_,opts_)(naive_solver(A_,b_,opts_));
+    end
+    for i = 1 : chunk_size : n
+        if i + chunk_size - 1 >= n
+            b(i:n,:) = solver_handle(A(i:n,i:n),b(i:n,:),opts);
+        else
+            b(i:i+chunk_size-1,:) = solver_handle(A(i:i+chunk_size-1,i:i+chunk_size-1),b(i:i+chunk_size-1,:),opts);
+            b(i+chunk_size:n,:) = b(i+chunk_size:n,:) - A(i+chunk_size:n,i:i+chunk_size-1)*b(i:i+chunk_size-1,:);
         end
     end
 end

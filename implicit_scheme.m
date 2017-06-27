@@ -4,21 +4,22 @@ tic;
 % check opts. Use default value if it's not given.
 
 % step size in time
-if ~isfield(opts,'k');                 opts.k = 1/128;              end
+if ~isfield(opts,'k');                  opts.k = 1/512;              end
 % iteration number
-if ~isfield(opts,'iter_num');          opts.iter_num = 128;         end
+if ~isfield(opts,'iter_num');           opts.iter_num = 512;         end
 % spatial step size
-if ~isfield(opts,'h');                 opts.h = 1/32;               end
+if ~isfield(opts,'h');                  opts.h = 1/128;              end
 % draw figure every ${opts.print_interval} iterations. (0 => off)
-if ~isfield(opts,'print_interval');    opts.print_interval = 0;     end
+if ~isfield(opts,'print_interval');     opts.print_interval = 0;     end
 % linear equation solver
-if ~isfield(opts,'subprob_solver');    opts.subprob_solver = 'PCG'; end
+if ~isfield(opts,'subprob_solver');     opts.subprob_solver = 'PCG'; end
 % use built-in tril/triu equation solver ?
-if ~isfield(opts,'Matlab_tri_solver'); opts.Matlab_tri_solver = 1; end
+if ~isfield(opts,'Matlab_tri_solver');  opts.Matlab_tri_solver = 1;  end
 % use built-in Cholesky factorization function ?
-if ~isfield(opts,'Matlab_Cholesky'); opts.Matlab_Cholesky = 1; end
+if ~isfield(opts,'Matlab_Cholesky');    opts.Matlab_Cholesky = 1;    end
+if ~isfield(opts,'res_tol');            opts.res_tol = 1e-6;         end
 % .
-if ~isfield(opts,'have_some_fun');      opts.have_some_fun   = 0;     end
+if ~isfield(opts,'have_some_fun');      opts.have_some_fun   = 0;    end
 
 slogans = {'开通预优共轭梯度法，立刻尊享急速收敛特权！\n',...
            };
@@ -49,7 +50,7 @@ end
 
 if strcmp(opts.subprob_solver, 'Multi_Grid_V')
 %     tic;
-    coarse_A = build_coarse_A(A,mat_size);
+    [coarse_A,res_op,int_op] = build_coarse(A,mat_size);
 %     toc
 end
 
@@ -66,15 +67,17 @@ t1 = toc;
 for iter = 1 : opts.iter_num
 
     switch opts.subprob_solver
+        case 'GMRES'
+            [u,~] = gmres(Ax_handle,u);
         case 'PCG'
-            [u,~] = pcg(Ax_handle,u,1e-10);
+            [u,~] = pcg(Ax_handle,u,opts.res_tol);
         case 'Cholesky'
             if opts.Matlab_tri_solver > 0
                 u = A\u;
                 u = At\u;
             else
                 opts.threshold = 50;
-                opts.chunk_num = 30;
+                opts.chunk_num = 20;
                 opts.recursive = 1;
                 % phase 1: G * y = b
                 u = tril_solver(A,u,opts);
@@ -90,9 +93,8 @@ for iter = 1 : opts.iter_num
             u = CG_solver(Ax_handle,u,opts);
         case 'Multi_Grid_V'
             opts.x0 = u;
-            opts.prebuilt_coarse_A = coarse_A;
             opts.threshold = 4;
-            u = MG_2D_solver(A,u,mat_size,opts);
+            u = MG_2D_solver(A,u,mat_size,opts,coarse_A,res_op,int_op);
         otherwise
             error('Solver doesn''t exist!');
     end
