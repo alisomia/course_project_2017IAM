@@ -15,6 +15,8 @@ function [u, output] = implicit_scheme(u0,opts)
     if ~isfield(opts,'subprob_solver');    opts.subprob_solver = 'PCG'; end
     % use built-in tril/triu equation solver ?
     if ~isfield(opts,'Matlab_tri_solver'); opts.Matlab_tri_solver = 1; end
+    % use built-in Cholesky factorization function ?
+    if ~isfield(opts,'Matlab_Cholesky'); opts.Matlab_Cholesky = 1; end
     % .
     if ~isfield(opts,'have_some_fun');      opts.have_some_fun   = 0;     end
     
@@ -35,7 +37,12 @@ function [u, output] = implicit_scheme(u0,opts)
 
     % Cholesky decomposition
     if strcmp(opts.subprob_solver, 'Cholesky')
-        A = my_Cholesky(A);
+        if opts.Matlab_Cholesky > 0
+            A = chol(A)';
+        else
+            A = tril(my_Cholesky(A));
+        end
+        At = A';
     end
 
 
@@ -55,8 +62,8 @@ function [u, output] = implicit_scheme(u0,opts)
                 [u,~] = pcg(Ax_handle,u,1e-10);
             case 'Cholesky'
                 if opts.Matlab_tri_solver > 0
-                    u = tril(A)\u;
-                    u = triu(A')\u;
+                    u = A\u;
+                    u = At\u;
                 else
                     opts.threshold = 50;
                     opts.chunk_num = 30;
@@ -64,7 +71,7 @@ function [u, output] = implicit_scheme(u0,opts)
                     % phase 1: G * y = b
                     u = tril_solver(A,u,opts);
                     % phase 2: G'* x = y
-                    u = triu_solver(A',u,opts);
+                    u = triu_solver(At,u,opts);
                 end
             case 'Gauss_Seidel'
                 opts.x0 = u;
