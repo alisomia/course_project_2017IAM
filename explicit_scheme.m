@@ -20,32 +20,32 @@ progress = -1;
 
 for iter = 1 : opts.iter_num
     u = u + opts.k * naive_laplace(u,opts.h);
-    
+
     % draw figure
     if opts.print_interval > 0 && mod(iter, opts.print_interval) == 0
         mesh(x,y,u);
         drawnow;
     end
-    
+
     % draw progress bar
     if (floor(100 * iter/opts.iter_num) > progress)
         progress = floor(100 * iter/opts.iter_num);
         clc
-        fprintf([repmat( '=', 1, progress-1),'>', repmat('-',1,100-progress)]);
+        fprintf([repmat( '=', 1, floor(progress/2)),'>', repmat('-',1,50-floor(progress/2))]);
         fprintf('\n');
     end
 end
 
 fprintf('Done!\n');
+fprintf('cost time \t: %2.1f sec\n',toc);
 output.cost_time = toc;
-
 end
 
 function lap = naive_laplace(u,h)
-    Laplace_approx = [ 0, 1, 0;...
-                       1,-4, 1;...
-                       0, 1, 0];
-    lap = conv2(u,Laplace_approx,'valid');
-    lap = lap / h^2;
-    lap = padarray(lap, [1, 1],0, 'both');
+Laplace_approx = [ 0, 1, 0;...
+                   1,-4, 1;...
+                   0, 1, 0];
+lap = conv2(u,Laplace_approx,'valid');
+lap = lap / h^2;
+lap = padarray(lap, [1, 1],0, 'both');
 end

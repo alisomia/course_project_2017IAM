@@ -1,7 +1,7 @@
 function x = CG_solver(A,b,opts)
     if ~isfield(opts,'res_tol');     opts.res_tol = 1e-6;               end
     if ~isfield(opts,'max_it');      opts.max_it  = 50;                 end
-    if ~isfield(opts,'x0');          opts.x0      = zeros(size(A,2),1); end
+    if ~isfield(opts,'x0');          opts.x0      = zeros(size(b)); end
     
     x = opts.x0;
     r = b - feval(A,x);
