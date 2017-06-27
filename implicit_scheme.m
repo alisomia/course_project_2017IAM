@@ -26,6 +26,8 @@ slogans = {'开通预优共轭梯度法，立刻尊享急速收敛特权！\n',...
 %get mesh size
 mesh_size = size(u0)-1;
 [m, n] = size(u0);
+mat_size = [m-2,n-2];
+vec_size = [(m-2)*(n-2),1];
 
 % give matrix A explicitly and a handle as well
 Laplace_approx = [ 0, 1, 0;...
@@ -45,13 +47,19 @@ if strcmp(opts.subprob_solver, 'Cholesky')
     At = A';
 end
 
+if strcmp(opts.subprob_solver, 'Multi_Grid_V')
+%     tic;
+    coarse_A = build_coarse_A(A,mat_size);
+%     toc
+end
+
 
 % prepare for drawing figures
 x = (0:mesh_size(2))'*opts.h;
 y = (0:mesh_size(1))'*opts.h;
 
 
-u = reshape(u0(2:m-1,2:n-1),(m-2) * (n-2),1);
+u = reshape(u0(2:m-1,2:n-1),vec_size);
 progress = -1;
 t1 = toc;
 
@@ -75,12 +83,16 @@ for iter = 1 : opts.iter_num
             end
         case 'Gauss_Seidel'
             opts.x0 = u;
+            opts.max_it = 500;
             u = GS_solver(A,u,opts);
         case 'Conjugate_Gradient'
             opts.x0 = u;
             u = CG_solver(Ax_handle,u,opts);
-        case 'Multi_Grid'
-
+        case 'Multi_Grid_V'
+            opts.x0 = u;
+            opts.prebuilt_coarse_A = coarse_A;
+            opts.threshold = 4;
+            u = MG_2D_solver(A,u,mat_size,opts);
         otherwise
             error('Solver doesn''t exist!');
     end

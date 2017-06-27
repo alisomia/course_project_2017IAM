@@ -2,13 +2,13 @@ clear
 clc
 
 mesh_size_list = [8, 16, 32, 64, 128, 256, 512];
-solver_list = {'PCG', 'Conjugate_Gradient','Cholesky','Gauss_Seidel'};
+solver_list = {'Multi_Grid_V','PCG','Conjugate_Gradient','Cholesky','Gauss_Seidel'};
 
 opts.k = 1/512;
 opts.iter_num = 512;
 opts.h = 1/128;
 opts.print_interval = 0;
-opts.Matlab_tri_solver = 1;
+opts.Matlab_tri_solver = 0;
 opts.Matlab_Cholesky = 1;
 opts.have_some_fun = 1;
 
