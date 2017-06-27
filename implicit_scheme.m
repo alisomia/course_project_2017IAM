@@ -13,7 +13,9 @@ function [u, output] = implicit_scheme(u0,opts)
     if ~isfield(opts,'print_interval');    opts.print_interval = 0;     end
     % linear equation solver
     if ~isfield(opts,'subprob_solver');    opts.subprob_solver = 'PCG'; end
-    % 
+    % use built-in tril/triu equation solver ?
+    if ~isfield(opts,'Matlab_tri_solver'); opts.Matlab_tri_solver = 1; end
+    % .
     if ~isfield(opts,'have_some_fun');      opts.have_some_fun   = 0;     end
     
     slogans = {'开通预优共轭梯度法，立刻尊享急速收敛特权！\n',...
@@ -31,7 +33,7 @@ function [u, output] = implicit_scheme(u0,opts)
         reshape(conv2(reshape(y,m-2,n-2),Laplace_approx,'same')/(opts.h^2),(m-2)*(n-2),1));
     A = speye((m-2)*(n-2)) - opts.k * generate_laplace_matrix(m-2,n-2,opts.h);
 
-    
+    % Cholesky decomposition
     if strcmp(opts.subprob_solver, 'Cholesky')
         A = my_Cholesky(A);
     end
@@ -50,23 +52,28 @@ function [u, output] = implicit_scheme(u0,opts)
 
         switch opts.subprob_solver
             case 'PCG'
-                u = pcg(Ax_handle,u,1e-10);
+                [u,~] = pcg(Ax_handle,u,1e-10);
             case 'Cholesky'
-                opts.threshold = 50;
-                opts.chunk_num = 30;
-                opts.recursive = 1;
-                % phase 1: G * y = b
-                u = tril_solver(A,u,opts);
-                % phase 2: G'* x = y
-                u = triu_solver(A',u,opts);
+                if opts.Matlab_tri_solver > 0
+                    u = tril(A)\u;
+                    u = triu(A')\u;
+                else
+                    opts.threshold = 50;
+                    opts.chunk_num = 30;
+                    opts.recursive = 1;
+                    % phase 1: G * y = b
+                    u = tril_solver(A,u,opts);
+                    % phase 2: G'* x = y
+                    u = triu_solver(A',u,opts);
+                end
             case 'Gauss_Seidel'
                 opts.x0 = u;
                 u = GS_solver(A,u,opts);
             case 'Conjugate_Gradient'
                 opts.x0 = u;
-                u = CG_solver(A,u,opts);
+                u = CG_solver(Ax_handle,u,opts);
             otherwise
-                error('solver not exists');
+                error('Solver doesn''t exist!');
         end
 
         % draw figure

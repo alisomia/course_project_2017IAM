@@ -8,6 +8,7 @@ opts.k = 1/512;
 opts.iter_num = 512;
 opts.h = 1/128;
 opts.print_interval = 0;
+opts.Matlab_tri_solver = 0;
 
 opts.have_some_fun = 1;
 
