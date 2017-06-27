@@ -43,7 +43,7 @@ end
             e = reshape(e,next_mat_size);
             u = reshape(u,cur_mat_size) + interpolate_operator(e);
             u = reshape(u,cur_vec_size);
-            opts.max_it = 1;
+            opts.max_it = 2;
             opts.x0 = u;
             [u,res] = GS_solver(coarse_A{level},target,opts);
         end
