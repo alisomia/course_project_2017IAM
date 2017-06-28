@@ -19,7 +19,7 @@ for solver = solver_list
 %     profile on
     [u,output] = implicit_scheme(u0,opts);
 %     profsave
-    break;
+%     break;
 end
 
 function u0 = generate_u0 (mesh_num)
