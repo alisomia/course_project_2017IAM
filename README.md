@@ -2,7 +2,7 @@
 
 run `main.m` and enjoy!
 
-List me in the list of **Acknowledgments** of your report if you find my codes helpful :)
+List me in the **Acknowledgments** of your report if you find my codes helpful 0w0 !
 
 |       Method       |            Run Time            | using my tri solver |
 | :----------------: | :----------------------------: | :-----------------: |

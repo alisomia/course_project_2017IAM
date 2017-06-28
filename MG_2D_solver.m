@@ -61,10 +61,10 @@ u_2h = u_h(1:2:m-2,1:2:n-2);
 end
 
 function u_h = interpolate_operator(u_2h)
+[m,n] = size(u_2h);
 kernel = [1/4, 1/2, 1/4;...
           1/2,   1, 1/2;...
           1/4, 1/2, 1/4];
-[m,n] = size(u_2h);
 u_h = zeros(2*m+1, 2*n+1);
 u_h(2:2:2*m,2:2:2*n) = u_2h;
 u_h = conv2(u_h,kernel,'same');
