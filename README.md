@@ -2,6 +2,8 @@
 
 run `main.m` and enjoy!
 
+List me in the list of **Acknowledgments** of your report if you find my codes helpful :)
+
 |       Method       |            Run Time            | using my tri solver |
 | :----------------: | :----------------------------: | :-----------------: |
 |    Multi Grid V    |            9.8 sec             |      594.3 sec      |
