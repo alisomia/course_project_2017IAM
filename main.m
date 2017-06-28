@@ -2,14 +2,14 @@ clear
 clc
 
 mesh_size_list = [8, 16, 32, 64, 128, 256, 512];
-solver_list = {'Multi_Grid_V','Cholesky','GMRES','PCG','Conjugate_Gradient','Gauss_Seidel'};
+solver_list = {'Cholesky','Multi_Grid_V','GMRES','PCG','Conjugate_Gradient','Gauss_Seidel'};
 
 opts.k 					= 1/512;
 opts.iter_num 			= 512;
 opts.h 					= 1/128;
 opts.print_interval 	= 0;
 opts.Matlab_tri_solver 	= 1;
-opts.Matlab_Cholesky 	= 1;
+opts.Matlab_Cholesky 	= 0;
 opts.have_some_fun 		= 1;
 
 u0 = generate_u0(128);
@@ -19,7 +19,7 @@ for solver = solver_list
 %     profile on
     [u,output] = implicit_scheme(u0,opts);
 %     profsave
-%     break;
+    break;
 end
 
 function u0 = generate_u0 (mesh_num)

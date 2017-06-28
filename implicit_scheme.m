@@ -43,7 +43,9 @@ if strcmp(opts.subprob_solver, 'Cholesky')
     if opts.Matlab_Cholesky > 0
         A = chol(A)';
     else
-        A = tril(my_Cholesky(A));
+%         tic;
+        A = tril(my_Cholesky(A,opts));
+%         toc
     end
     At = A';
 end

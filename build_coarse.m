@@ -1,4 +1,5 @@
 function [coarse_A,res_op,int_op] = build_coarse(A,usize)
+% build coarse A for Multi Grid method
 k = 2;
 coarse_A{1} = A;
 while true

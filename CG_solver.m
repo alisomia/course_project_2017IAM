@@ -9,7 +9,7 @@ res0_norm = norm(res);
 res_norm = res0_norm;
 for iter = 1 : opts.max_it
     if iter > 1
-        beta = (res_norm/old_res)^2;
+        beta = (res_norm/old_res_norm)^2;
         p = res + beta * p;
     else
         p = res;
@@ -17,7 +17,7 @@ for iter = 1 : opts.max_it
     A_p = feval(A,p);
     alpha = res_norm^2/(p'*A_p);
     x = x + alpha * p;
-    old_res = res_norm;
+    old_res_norm = res_norm;
     res = res - alpha * A_p;
     res_norm = norm(res);
     if res_norm < opts.res_tol*res0_norm
