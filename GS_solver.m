@@ -20,7 +20,7 @@ for iter = 1 : opts.max_it
     if opts.Matlab_tri_solver > 0
         x = D_m_L\(U_x+b);
     else
-        x = tril_solver(D_m_L,U*x+b);
+        x = tril_solver(D_m_L,U_x+b);
     end
     res = -U_x;
     U_x = U*x;
