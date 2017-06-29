@@ -41,13 +41,13 @@ A = speye((m-2)*(n-2)) - opts.k * generate_laplace_matrix(m-2,n-2,opts.h);
 % Cholesky decomposition
 if strcmp(opts.subprob_solver, 'Cholesky')
     if opts.Matlab_Cholesky > 0
-        A = chol(A)';
+        G = chol(A)';
     else
 %         tic;
-        A = tril(my_Cholesky(A,opts));
+        G = tril(my_Cholesky(A,opts));
 %         toc
     end
-    At = A';
+    Gt = G';
 end
 
 if strcmp(opts.subprob_solver, 'Multi_Grid_V')
@@ -79,8 +79,8 @@ for iter = 1 : opts.iter_num
             [u,~] = pcg(Ax_handle,u,opts.res_tol);
         case 'Cholesky'
             if opts.Matlab_tri_solver > 0
-                u = A\u;
-                u = At\u;
+                u = G\u;
+                u = Gt\u;
             else
                 opts.threshold = 50;
                 opts.chunk_num = 20;
@@ -108,6 +108,7 @@ for iter = 1 : opts.iter_num
     % draw figure
     if opts.print_interval > 0 && mod(iter, opts.print_interval) == 0
         mesh(x,y,padarray(reshape(u,m-2,n-2),[1,1],0,'both'));
+        zlim([0 1]);
         drawnow;
     end
 
