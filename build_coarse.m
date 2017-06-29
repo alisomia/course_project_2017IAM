@@ -1,12 +1,17 @@
 function [coarse_A,res_op,int_op] = build_coarse(A,usize)
 % build coarse A for Multi Grid method
+% optimized for Gauss_Seidel
 k = 2;
-coarse_A{1} = A;
+last_coarse_A = A;
+coarse_A{1}.D_m_L = tril(last_coarse_A);
+coarse_A{1}.U = -triu(last_coarse_A,1);
 while true
     if min(usize) < 4 break; end
     res_op{k-1} = generate_I_12(usize);
     int_op{k-1} = 4 * res_op{k-1}';
-    coarse_A{k} = res_op{k-1} * coarse_A{k-1} * int_op{k-1};
+    last_coarse_A = res_op{k-1} * last_coarse_A * int_op{k-1};
+    coarse_A{k}.D_m_L = tril(last_coarse_A);
+    coarse_A{k}.U = -triu(last_coarse_A,1);
     usize       = (usize-1)/2;
     k           = k + 1;
 end

@@ -5,14 +5,26 @@ if ~isfield(opts,'x0');          opts.x0      = zeros(size(b));    end
 if ~isfield(opts,'Matlab_tri_solver'); opts.Matlab_tri_solver = 1; end
 
 x = opts.x0;
-res0_norm = norm(b - A*x);
+if ~isstruct(A)
+    D_m_L = tril(A);
+    U = -triu(A,1);
+else
+    D_m_L = A.D_m_L;
+    U = A.U;
+end
+
+U_x = U*x;
+res0_norm = norm(b-D_m_L*x+U_x);
+
 for iter = 1 : opts.max_it
     if opts.Matlab_tri_solver > 0
-        x = tril(A)\(-triu(A,1)*x+b);
+        x = D_m_L\(U_x+b);
     else
-        x = tril_solver(A,-triu(A,1)*x+b);
+        x = tril_solver(D_m_L,U*x+b);
     end
-    res = b - A*x;
+    res = -U_x;
+    U_x = U*x;
+    res = res+U_x;
     res_norm = norm(res);
     if res_norm < opts.res_tol*res0_norm
         break;

@@ -56,6 +56,10 @@ if strcmp(opts.subprob_solver, 'Multi_Grid_V')
 %     toc
 end
 
+if strcmp(opts.subprob_solver, 'Gauss_Seidel')
+    A_struct.D_m_L = tril(A);
+    A_struct.U = -triu(A,1);
+end
 
 % prepare for drawing figures
 x = (0:mesh_size(2))'*opts.h;
@@ -88,14 +92,14 @@ for iter = 1 : opts.iter_num
             end
         case 'Gauss_Seidel'
             opts.x0 = u;
-            opts.max_it = 500;
-            u = GS_solver(A,u,opts);
+            opts.max_it = 9999999;
+            u = GS_solver(A_struct,u,opts);
         case 'Conjugate_Gradient'
             opts.x0 = u;
             u = CG_solver(Ax_handle,u,opts);
         case 'Multi_Grid_V'
             opts.x0 = u;
-            opts.threshold = 4;
+            opts.threshold = 8;
             u = MG_2D_solver(A,u,mat_size,opts,coarse_A,res_op,int_op);
         otherwise
             error('Solver doesn''t exist!');
@@ -115,7 +119,7 @@ for iter = 1 : opts.iter_num
         fprintf([repmat( '=', 1, floor(progress/2)),'>', repmat('-',1,50-floor(progress/2))]);
         fprintf('\n');
         fprintf(strcat('solver \t\t:',32,opts.subprob_solver,'\n'));
-        fprintf('cost time \t: %2.1f sec\nestimated time \t: %2.1f sec\n',toc,est_time);
+        fprintf('cost time \t: %2.3f sec\nestimated time \t: %2.3f sec\n',toc,est_time);
         if est_time > 100 && opts.have_some_fun > 0
             fprintf(slogans{randi([1 length(slogans)])});
         end
@@ -124,7 +128,7 @@ end
 clc
 fprintf('Done!\n');
 fprintf(strcat('solver \t\t:',32,opts.subprob_solver,'\n'));
-fprintf('cost time \t: %2.1f sec\n',toc);
+fprintf('cost time \t: %2.3f sec\n',toc);
 output.cost_time = toc;
 u = padarray(reshape(u,m-2,n-2),[1,1],0,'both');
 end

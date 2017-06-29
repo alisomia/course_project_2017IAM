@@ -23,12 +23,12 @@ end
     
     function [u,res] = v_solver(level,target,u0,cur_mat_size,opts)
         next_mat_size = (cur_mat_size-1)/2;
-        cur_vec_size = [cur_mat_size(1)*cur_mat_size(2),1];
-        next_vec_size = [next_mat_size(1)*next_mat_size(2),1];
+%         cur_vec_size = [cur_mat_size(1)*cur_mat_size(2),1];
+%         next_vec_size = [next_mat_size(1)*next_mat_size(2),1];
         
         if min(cur_mat_size) < opts.threshold
             opts.x0 = u0;
-            opts.max_it = 3;
+            opts.max_it = 2;
             [u,res] = GS_solver(coarse_A{level},target,opts);
         else
             opts.x0 = u0;

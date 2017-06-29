@@ -1,7 +1,7 @@
 clear
 clc
 
-solver_list = {'Cholesky','Multi_Grid_V','GMRES','PCG','Conjugate_Gradient','Gauss_Seidel'};
+solver_list = {'Multi_Grid_V','Cholesky','GMRES','PCG','Conjugate_Gradient','Gauss_Seidel'};
 
 opts.k                  = 1/512;
 opts.iter_num           = 512;
