@@ -49,6 +49,7 @@ for iter = 1 : opts.iter_num
     % draw figure
     if opts.print_interval > 0 && mod(iter, opts.print_interval) == 0
         mesh(x,y,padarray(reshape(u,m-2,n-2),[1,1],0,'both'));
+        zlim([0 1]);
         drawnow;
     end
 
