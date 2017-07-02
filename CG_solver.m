@@ -1,4 +1,4 @@
-function [x,res] = CG_solver(A,b,opts)
+function [x,res,output] = CG_solver(A,b,opts)
 if ~isfield(opts,'res_tol');     opts.res_tol = 1e-6;               end
 if ~isfield(opts,'max_it');      opts.max_it  = 50;                 end
 if ~isfield(opts,'x0');          opts.x0      = zeros(size(b)); end
@@ -7,6 +7,8 @@ x = opts.x0;
 res = b - feval(A,x);
 res0_norm = norm(res);
 res_norm = res0_norm;
+% res_list = zeros(opts.max_it+1,1);
+% res_list(1) = res0_norm;
 for iter = 1 : opts.max_it
     if iter > 1
         beta = (res_norm/old_res_norm)^2;
@@ -20,8 +22,12 @@ for iter = 1 : opts.max_it
     old_res_norm = res_norm;
     res = res - alpha * A_p;
     res_norm = norm(res);
+%     res_list(iter+1) = res_norm;
     if res_norm < opts.res_tol*res0_norm
         break;
     end
 end
+% trace.iter_list = res_list(1:iter+1);
+% output.trace = trace;
+output.iter = iter;
 end

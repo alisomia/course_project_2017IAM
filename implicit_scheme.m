@@ -1,4 +1,4 @@
-function [u, output] = implicit_scheme(u0,opts)
+function [U_vec, output] = implicit_scheme(U0,opts)
 tic;
 
 % check opts. Use default value if it's not given.
@@ -25,8 +25,8 @@ slogans = {'开通预优共轭梯度法，立刻尊享急速收敛特权！\n',...
            };
 
 %get mesh size
-mesh_size = size(u0)-1;
-[m, n] = size(u0);
+mesh_size = size(U0)-1;
+[m, n] = size(U0);
 mat_size = [m-2,n-2];
 vec_size = [(m-2)*(n-2),1];
 
@@ -62,52 +62,55 @@ if strcmp(opts.subprob_solver, 'Gauss_Seidel')
 end
 
 % prepare for drawing figures
-x = (0:mesh_size(2))'*opts.h;
-y = (0:mesh_size(1))'*opts.h;
+x_list = (0:mesh_size(2))'*opts.h;
+y_list = (0:mesh_size(1))'*opts.h;
 
 
-u = reshape(u0(2:m-1,2:n-1),vec_size);
+U_vec = reshape(U0(2:m-1,2:n-1),vec_size);
 progress = -1;
+trace.iter = zeros(opts.iter_num,1);
+
 t1 = toc;
 
 for iter = 1 : opts.iter_num
 
     switch opts.subprob_solver
         case 'GMRES'
-            [u,~] = gmres(Ax_handle,u);
+            [U_vec,~] = gmres(Ax_handle,U_vec);
         case 'PCG'
-            [u,~] = pcg(Ax_handle,u,opts.res_tol);
+            [U_vec,~] = pcg(Ax_handle,U_vec,opts.res_tol);
         case 'Cholesky'
             if opts.Matlab_tri_solver > 0
-                u = G\u;
-                u = Gt\u;
+                U_vec = G\U_vec;
+                U_vec = Gt\U_vec;
             else
                 opts.threshold = 50;
                 opts.chunk_num = 20;
                 opts.recursive = 1;
                 % phase 1: G * y = b
-                u = tril_solver(A,u,opts);
+                U_vec = tril_solver(A,U_vec,opts);
                 % phase 2: G'* x = y
-                u = triu_solver(At,u,opts);
+                U_vec = triu_solver(At,U_vec,opts);
             end
         case 'Gauss_Seidel'
-            opts.x0 = u;
+            opts.x0 = U_vec;
             opts.max_it = 9999999;
-            u = GS_solver(A_struct,u,opts);
+            U_vec = GS_solver(A_struct,U_vec,opts);
         case 'Conjugate_Gradient'
-            opts.x0 = u;
-            u = CG_solver(Ax_handle,u,opts);
+            opts.x0 = U_vec;
+            [U_vec,~,sub_output] = CG_solver(Ax_handle,U_vec,opts);
+            trace.iter(iter) = sub_output.iter;
         case 'Multi_Grid_V'
-            opts.x0 = u;
+            opts.x0 = U_vec;
             opts.threshold = 8;
-            u = MG_2D_solver(A,u,mat_size,opts,coarse_A,res_op,int_op);
+            U_vec = MG_2D_solver(A,U_vec,mat_size,opts,coarse_A,res_op,int_op);
         otherwise
             error('Solver doesn''t exist!');
     end
 
     % draw figure
     if opts.print_interval > 0 && mod(iter, opts.print_interval) == 0
-        mesh(x,y,padarray(reshape(u,m-2,n-2),[1,1],0,'both'));
+        mesh(x_list,y_list,padarray(reshape(U_vec,m-2,n-2),[1,1],0,'both'));
         zlim([0 1]);
         drawnow;
     end
@@ -131,5 +134,6 @@ fprintf('Done!\n');
 fprintf(strcat('solver \t\t:',32,opts.subprob_solver,'\n'));
 fprintf('cost time \t: %2.3f sec\n',toc);
 output.cost_time = toc;
-u = padarray(reshape(u,m-2,n-2),[1,1],0,'both');
+output.trace = trace;
+U_vec = padarray(reshape(U_vec,m-2,n-2),[1,1],0,'both');
 end

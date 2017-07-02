@@ -12,22 +12,22 @@ if (m ~= n) error('Not a square matrix!'); end
 % solve small-scale problems directly
 if (n < opts.threshold || opts.recursive == 0)
     A = naive_Cholesky(A);
-else
-    for i = 1:chunk_size:n
-        if i + chunk_size - 1 >= n
-            A(i:n,i:n) = my_Cholesky(A(i:n,i:n),opts);
+    return;
+end
+for i = 1:chunk_size:n
+    if i + chunk_size - 1 >= n
+        A(i:n,i:n) = my_Cholesky(A(i:n,i:n),opts);
+    else
+        cache0 = tril(my_Cholesky(A(i:i+chunk_size-1,i:i+chunk_size-1),opts));
+        if opts.Matlab_tri_solver > 0
+            cache1 =...
+            ((cache0\A(i:i+chunk_size-1,i+chunk_size:n)))';
         else
-            cache0 = tril(my_Cholesky(A(i:i+chunk_size-1,i:i+chunk_size-1),opts));
-            if opts.Matlab_tri_solver > 0
-                cache1 =...
-                ((cache0\A(i:i+chunk_size-1,i+chunk_size:n)))';
-            else
-                cache1 =...
-                (tril_solver(cache0,A(i:i+chunk_size-1,i+chunk_size:n)))';
-            end
-            A(i:n,i:i+chunk_size-1) = [cache0;cache1];
-            A(i+chunk_size:n,i+chunk_size:n) = A(i+chunk_size:n,i+chunk_size:n) - cache1*cache1';
+            cache1 =...
+            (tril_solver(cache0,A(i:i+chunk_size-1,i+chunk_size:n)))';
         end
+        A(i:n,i:i+chunk_size-1) = [cache0;cache1];
+        A(i+chunk_size:n,i+chunk_size:n) = A(i+chunk_size:n,i+chunk_size:n) - cache1*cache1';
     end
 end
 end

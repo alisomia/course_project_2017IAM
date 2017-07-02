@@ -23,8 +23,9 @@ for iter = 1 : opts.iter_num
 
     % draw figure
     if opts.print_interval > 0 && mod(iter, opts.print_interval) == 0
-        mesh(x,y,u);
-        zlim([0 1]);
+        surf(x,y,u);
+        shading interp;
+%         zlim([0 1]);
         drawnow;
     end
 

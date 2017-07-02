@@ -10,6 +10,6 @@ List me in the **Acknowledgments** of your report if you find my codes helpful 0
 |      Cholesky      | 5.871 sec (4.633 sec using `chol`) |
 |       GMRES        |             0.893 sec              |
 |        PCG         |             0.594 sec              |
-| Conjugate Gradient |             1.146 sec              |
+| Conjugate Gradient |             1.090 sec              |
 |    Gauss-Seidel    |            180.672 sec             |
 
