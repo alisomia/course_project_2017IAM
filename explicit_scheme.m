@@ -1,4 +1,4 @@
-function [u, output] = explicit_scheme(u0,opts)
+function [U, output] = explicit_scheme(U0,opts)
 tic;
 
 % step size in time
@@ -11,19 +11,21 @@ if ~isfield(opts,'h');                 opts.h = 1/32;             end
 if ~isfield(opts,'print_interval');    opts.print_interval = 0;   end
 
 %get mesh size
-mesh_size = size(u0)-1;
-x = (0:mesh_size(2))'*opts.h;
-y = (0:mesh_size(1))'*opts.h;
+mat_size = size(U0);
+vec_size = [prod(mat_size),1];
 
-u = u0;
+x = (1:mat_size(2))'*opts.h;
+y = (1:mat_size(1))'*opts.h;
+
+U_vec = reshape(U0,vec_size);
 progress = -1;
-
+Lap = gen_Lap_2d(mat_size,opts.h);
 for iter = 1 : opts.iter_num
-    u = u + opts.k * naive_laplace(u,opts.h);
+    U_vec = U_vec + opts.k*(Lap*U_vec);
 
     % draw figure
     if opts.print_interval > 0 && mod(iter, opts.print_interval) == 0
-        surf(x,y,u);
+        surf(x,y,reshape(U_vec,mat_size));
         shading interp;
 %         zlim([0 1]);
         drawnow;
@@ -41,13 +43,5 @@ end
 fprintf('Done!\n');
 fprintf('cost time \t: %2.1f sec\n',toc);
 output.cost_time = toc;
-end
-
-function lap = naive_laplace(u,h)
-Laplace_approx = [ 0, 1, 0;...
-                   1,-4, 1;...
-                   0, 1, 0];
-lap = conv2(u,Laplace_approx,'valid');
-lap = lap / h^2;
-lap = padarray(lap, [1, 1],0, 'both');
+U = reshape(U_vec,mat_size);
 end
