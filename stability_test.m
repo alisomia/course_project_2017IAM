@@ -1,6 +1,7 @@
 clear
 clc
 
+addpath('./solvers');
 solution = @(x,y,t)exp(-2*pi^2*t)*sin(pi*x)*sin(pi*y);
 mesh_num = 2^5;
 target_time = 1;

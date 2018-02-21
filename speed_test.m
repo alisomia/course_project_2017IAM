@@ -1,6 +1,7 @@
 clear
 clc
 
+addpath('./solvers');
 solver_list = {'Conjugate_Gradient','Multi_Grid_V','Cholesky','Gauss_Seidel'};
 
 opts.k                  = 1/512;
